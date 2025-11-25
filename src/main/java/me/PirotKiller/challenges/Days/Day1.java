@@ -1,6 +1,7 @@
 package me.PirotKiller.challenges.Days;
 
 import me.PirotKiller.challenges.Managers.Manager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -8,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,17 +17,19 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class Day1 {
 
-    private Manager manager = new Manager();
-
-    public void execute(ServerLevel world, ServerPlayer player){
+    public void execute(ServerLevel world, BlockPos cageStartPosition , ServerPlayer player){
         int cageSize = 6;
-        BlockPos cageStartPosition = new BlockPos(-2864,150,855);
         BlockPos spawnPos = cageStartPosition.offset(cageSize / 2,1,cageSize / 2);
-//        createCage(world, cageStartPosition, cageSize);
-//        spawnModdedMob(world,spawnPos, Manager.MOB_IDS.get(2));
-        Manager.sendTitleToPlayer(player,"LOOK UP!","Challenge: Build a farm before Day 20",10, 70, 20);
-        player.sendSystemMessage(Component.literal("We will drop him anytime..."));
+        createCage(world, cageStartPosition, cageSize);
+        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(Manager.MOB_IDS.get(0)));
+        entityType.spawn(world, spawnPos, MobSpawnType.MOB_SUMMONED);
+        Manager.sendTitleToPlayer(player,
+                Component.literal("LOOK UP!").withStyle(ChatFormatting.BLUE)
+                ,Component.literal("Challenge: Build a farm before Day 20").withStyle(ChatFormatting.YELLOW)
+                ,10, 70, 20);
+        player.sendSystemMessage(Component.literal("We will drop him anytime...").withStyle(ChatFormatting.YELLOW));
         player.sendSystemMessage(Component.literal("Challenge: Build a farm before Day 20"));
+        player.sendSystemMessage(Component.literal("Day 1.....!"));
     }
 
     public static void createCage(Level world, BlockPos startPos, int size) {
@@ -62,9 +65,16 @@ public class Day1 {
             }
         }
     }
+    public static void completeFarmChallenge(ServerPlayer player) {
+        Manager.setFarmChallengeCompleted(true);
 
-    public static void spawnModdedMob(ServerLevel world, BlockPos pos, String mobs) {
-        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(mobs));
-        entityType.spawn(world,pos, MobSpawnType.MOB_SUMMONED);
+        Manager.sendTitleToPlayer(player, Component.literal("FARM COMPLETE!").withStyle(ChatFormatting.GREEN), Component.literal("Here is your reward."), 10, 70, 20);
+        player.sendSystemMessage(Component.literal("You received a Gun and a Stack of ").withStyle(ChatFormatting.GREEN)
+                .append("Bullets!").withStyle(ChatFormatting.GOLD));
+
+        ItemStack gun = ForgeRegistries.ITEMS.getValue(new ResourceLocation(Manager.reward_items.get(0))).getDefaultInstance();
+        ItemStack ammo = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(Manager.reward_items.get(1))),64);
+        player.getInventory().add(gun);
+        player.getInventory().add(ammo);
     }
 }
