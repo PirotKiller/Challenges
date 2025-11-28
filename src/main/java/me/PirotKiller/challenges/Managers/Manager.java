@@ -26,6 +26,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -117,7 +119,6 @@ public class Manager {
                 lastServerDay = currentServerDay;
 
                 System.out.println("### NEW DAY on SERVER: " + currentServerDay + " ###");
-//                todo: Play sound on player position -> done
                 if (currentServerDay == 1L) {
                     new Day1().execute(overworld,DAY_1_CAGE_POS,event.getServer().getPlayerList().getPlayers().get(0));
                 } else if (currentServerDay == 5L) {
@@ -143,14 +144,31 @@ public class Manager {
             }if (currentServerDay == 46 && !evening_46 && dayTicks == 14000){
                 new Day46().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 evening_46 = true;
-            }if (currentServerDay == 71 && !evening_71 && !isPlayer_has_mystery_object()){
-                // remove block if button not pressed
-//                tragetPlayer.sendSystemMessage(Component.literal("The button crumbles... you were too late."));
-//                world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
+            }if (currentServerDay >= 71 && !evening_71 && !isPlayer_has_mystery_object()){
+                for (BlockPos buttonPos : DAY_50_BUTTON_POS) {
+                    BlockPos supportBlockPos = buttonPos.north();
+                    overworld.setBlock(supportBlockPos.south(1).east(1), Blocks.AIR.defaultBlockState(), 3);
+                    overworld.setBlock(supportBlockPos.south(1).east(1).below(1), Blocks.AIR.defaultBlockState(), 3);
+                    overworld.setBlock(buttonPos, Blocks.AIR.defaultBlockState(), 3);
+                }
                 evening_71 = true;
             }if (currentServerDay == 82 && !evening_82 && dayTicks == 12000){
                 new Day82().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 evening_82 = true;
+            }
+
+            if (currentServerDay >= 82 && dayTicks > 12000 && isPlayer_has_mystery_object()) {
+                // Center of the trap - assumed to be near START_BUTTON_POS or wherever Day 82 spawns him
+                // Adjust this position to match where spawnTrapTaxman places the mob
+                BlockPos trapCenter = START_BUTTON_POS.east(10); // Matches spawnTrapTaxman offset
+                // 1. Spawn Particle Ring
+                spawnParticleRing(overworld, trapCenter, net.minecraft.core.particles.ParticleTypes.ENCHANT, 5.0, 40);
+
+                // 2. Repel Player
+                // Assuming single player for now, or loop through all players
+                for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+                    repelPlayer(player, trapCenter, 5.0, 0.5);
+                }
             }
         }
     }
@@ -166,6 +184,11 @@ public class Manager {
     @SubscribeEvent
     public static void checkStartButtonPress(PlayerInteractEvent.RightClickBlock event){
         Level world = event.getLevel();
+        if (world.isClientSide())
+            return;
+        if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) {
+            return;
+        }
         @NotNull BlockPos blockPos = event.getPos();
         Block clickedBlock = world.getBlockState(blockPos).getBlock();
         tragetPlayer = event.getEntity();
@@ -173,31 +196,31 @@ public class Manager {
             return;
         if (blockPos.equals(START_BUTTON_POS)){
             if (clickedBlock instanceof ButtonBlock){
-                if (start) {
+                if (!start) {
                     ticksBeforeStart = world.getGameTime();
                     event.getEntity().sendSystemMessage(Component.literal("The challenge has already begun."));
-                    return;
+                    setStart(true);
                 }
-                setStart(true);
             }
         }
+//        todo: add natural spawn for lich and fix red color in shader
 //****************************************************************************************************
 //                                          Challenge 4
 //****************************************************************************************************
-        else if (DAY_50_BUTTON_POS.contains(blockPos) && !isPlayer_has_mystery_object()) {
-            if (currentServerDay > 49 && currentServerDay <= 70) {
+        else if (DAY_50_BUTTON_POS.contains(blockPos)) {
+            if (currentServerDay > 49 && currentServerDay <= 70 && !isPlayer_has_mystery_object()) {
 
                 tragetPlayer.sendSystemMessage(Component.literal("You received a Mysterious Object!"));
+                event.setCanceled(true);
+                for (BlockPos buttonPos : DAY_50_BUTTON_POS) {
+                    BlockPos supportBlockPos = buttonPos.north();
+                    world.levelEvent(2001, buttonPos, Block.getId(world.getBlockState(buttonPos)));
+                    world.setBlock(buttonPos, Blocks.AIR.defaultBlockState(), 3);
+                    world.setBlock(supportBlockPos.south(1).east(1), Blocks.AIR.defaultBlockState(), 3);
+                    world.setBlock(supportBlockPos.south(1).east(1).below(1), Blocks.AIR.defaultBlockState(), 3);
+                }
                 player_has_mystery_object = true;
-
-                world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
-                world.setBlock(blockPos.below(), Blocks.AIR.defaultBlockState(), 3);
             }
-            // code shifted above
-//            else {
-//                tragetPlayer.sendSystemMessage(Component.literal("The button crumbles... you were too late."));
-//                world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
-//            }
         }
     }
 
@@ -206,11 +229,8 @@ public class Manager {
 //****************************************************************************************************
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
-        // Server-side check
         if (event.getLevel().isClientSide()) return;
 
-        // Only count if the challenge is active (Day 1 to Day 20)
-        // and not already completed.
         if (currentServerDay >= 1 && currentServerDay <= 18 && !farmChallengeCompleted) {
 
             if (event.getPlacedBlock().getBlock() instanceof CropBlock ||
@@ -220,12 +240,9 @@ public class Manager {
                 plantedSeedsCount++;
 
                 if (event.getEntity() instanceof ServerPlayer player) {
-//                    player.sendSystemMessage(Component.literal("Crops planted: " + plantedSeedsCount + "/30")
-//                            .withStyle(ChatFormatting.GREEN));
-
-                    // Check if target reached
                     if (plantedSeedsCount >= 30) {
                         Day1.completeFarmChallenge(player);
+                        Manager.farmChallengeCompleted = true;
                     }
                 }
             }
@@ -257,26 +274,19 @@ public class Manager {
 //****************************************************************************************************
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
-        // Server-side check
         if (event.getEntity().level().isClientSide()) return;
 
-        // Only check on Day 46 and if not already completed
         if (currentServerDay == 46 && !player_survived_second_blood_moon) {
 
-            // 1. Get the ID of the entity that died
             String deadEntityId = EntityType.getKey(event.getEntity().getType()).toString();
 
-            // 2. Check if it matches our Mutant Skeleton Boss ID (Index 1 in your list)
             if (deadEntityId.equals(MOB_IDS.get(1))) {
 
-                // 3. Check if a player killed it (optional, but good practice)
                 if (event.getSource().getEntity() instanceof ServerPlayer player) {
-                    // Mark as complete so it doesn't trigger twice
+
                     player_survived_second_blood_moon = true;
                     Day46.completeBloodMoonChallenge(player);
                 }
-                // If the boss died from something else (like sunlight or lava),
-                // we might still want to give the reward to the 'targetPlayer' we stored earlier.
                 else if (tragetPlayer instanceof ServerPlayer) {
                     player_survived_second_blood_moon = true;
                     Day46.completeBloodMoonChallenge((ServerPlayer) tragetPlayer);
@@ -325,6 +335,27 @@ public class Manager {
             event.setRed(1f);
             event.setGreen(0f);
             event.setBlue(0f);
+        }
+    }
+
+    public static void spawnParticleRing(ServerLevel world, BlockPos pos, ParticleOptions particle, double radius, int count) {
+        for (int i = 0; i < count; i++) {
+            double angle = 2 * Math.PI * i / count;
+            double x = pos.getX() + 0.5 + radius * Math.cos(angle);
+            double z = pos.getZ() + 0.5 + radius * Math.sin(angle);
+            world.sendParticles(particle, x, pos.getY() + 1, z, 1, 0, 0, 0, 0);
+        }
+    }
+
+    public static void repelPlayer(ServerPlayer player, BlockPos targetPos, double radius, double pushStrength) {
+        double distanceSq = player.distanceToSqr(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
+        if (distanceSq < radius * radius) {
+            Vec3 playerPos = player.position();
+            Vec3 targetVec = new Vec3(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
+            Vec3 pushDirection = playerPos.subtract(targetVec).normalize().scale(pushStrength);
+
+            player.setDeltaMovement(player.getDeltaMovement().add(pushDirection));
+            player.hurtMarked = true;
         }
     }
 

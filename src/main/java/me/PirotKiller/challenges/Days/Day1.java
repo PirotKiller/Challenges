@@ -3,10 +3,12 @@ package me.PirotKiller.challenges.Days;
 import me.PirotKiller.challenges.Managers.Manager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +23,11 @@ public class Day1 {
         int cageSize = 6;
         BlockPos spawnPos = cageStartPosition.offset(cageSize / 2,1,cageSize / 2);
         createCage(world, cageStartPosition, cageSize);
+
+        Manager.playSound(world, player.getOnPos().above(2), SoundEvents.ANVIL_LAND, 1.0f, 0.5f);
+
+        Manager.spawnParticles(world, ParticleTypes.CLOUD, cageStartPosition.offset(3, 3, 3), 50, 5.0);
+
         EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(Manager.MOB_IDS.get(0)));
         entityType.spawn(world, spawnPos, MobSpawnType.MOB_SUMMONED);
         Manager.sendTitleToPlayer(player,

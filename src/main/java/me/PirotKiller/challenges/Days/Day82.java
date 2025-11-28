@@ -19,10 +19,10 @@ public class Day82 {
         if (Manager.isPlayer_has_mystery_object()) {
 
             Manager.spawnParticles(overworld, ParticleTypes.ENCHANT, pos.east(10), 200, 5.0);
-            // Add "trapped" sound
+
             Manager.playSound(overworld, player.getOnPos(), SoundEvents.ZOMBIE_VILLAGER_CURE, 1.0f, 1.5f);
         } else {
-            // Add "failed" sound
+
             Manager.playSound(overworld, player.getOnPos(), SoundEvents.ENDER_DRAGON_GROWL, 1.0f, 1.0f);
         }
     }

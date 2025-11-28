@@ -4,13 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b3b8ae4-b256-4fb8-9e82-866476b0871b" name="Changes" comment="Code cleanup">
+    <list default="true" id="7b3b8ae4-b256-4fb8-9e82-866476b0871b" name="Changes" comment="Code cleanup and adding features">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Challenges.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Challenges.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day1.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day18.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day18.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day21.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day21.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day29.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day29.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day46.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day46.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day5.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day5.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day50.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/PirotKiller/challenges/Days/Day50.java" afterDir="false" />
@@ -103,6 +101,7 @@
   &quot;keyToString&quot;: {
     &quot;Gradle.C:/Users/Pirot/IdeaProjects/Challenges [createMcpToSrg].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.C:/Users/Pirot/IdeaProjects/Challenges [wrapper genIntellijRuns].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Challenges [assemble].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Challenges [build].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Challenges [clean].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Challenges [createMcpToSrg].executor&quot;: &quot;Run&quot;,
@@ -134,7 +133,29 @@
       <recent name="C:\Users\Pirot\IdeaProjects\Challenges\run\saves" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Challenges [jar]">
+  <component name="RunManager" selected="Gradle.Challenges [runClient]">
+    <configuration name="Challenges [assemble]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="assemble" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
     <configuration name="Challenges [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -223,28 +244,6 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="Challenges [testClasses]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="testClasses" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <module name="mcdev-temp-root" />
       <method v="2">
@@ -258,11 +257,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.Challenges [jar]" />
-        <item itemvalue="Gradle.Challenges [build]" />
         <item itemvalue="Gradle.Challenges [runClient]" />
+        <item itemvalue="Gradle.Challenges [jar]" />
         <item itemvalue="Gradle.Challenges [clean]" />
-        <item itemvalue="Gradle.Challenges [testClasses]" />
+        <item itemvalue="Gradle.Challenges [build]" />
+        <item itemvalue="Gradle.Challenges [assemble]" />
       </list>
     </recent_temporary>
   </component>
@@ -325,7 +324,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763405240451</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Code cleanup and adding features">
+      <option name="closed" value="true" />
+      <created>1764100017709</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1764100017709</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -342,6 +349,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="upload" />
     <MESSAGE value="Code cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="Code cleanup" />
+    <MESSAGE value="Code cleanup and adding features" />
+    <option name="LAST_COMMIT_MESSAGE" value="Code cleanup and adding features" />
   </component>
 </project>
