@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 
 public class Day29 {
-    public void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
 
         Manager.sendTitleToPlayer(player, Component.literal("☽ BLOOD MOON ☽").withStyle(ChatFormatting.RED),
                 Component.literal("The hordes are coming!").withStyle(ChatFormatting.AQUA), 10, 70, 20);

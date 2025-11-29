@@ -11,6 +11,9 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
@@ -20,18 +23,25 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -68,7 +78,8 @@ public class Manager {
             "minecraft:zombie",
             "minecraft:skeleton",
             "the_tax_man:taxman",
-            "graveyard:lich"
+            "graveyard:lich",
+            "the_tax_man:taxman_attack"
     );
 
 //----------------------------------------------------------------------------------------------------
@@ -81,7 +92,8 @@ public class Manager {
     private static boolean player_has_placed_lever = false;
     private static boolean player_survived_first_blood_moon = false;
     private static boolean player_survived_second_blood_moon = false;
-    private static boolean player_has_mystery_object = false;
+    private static boolean isTaxmanTrapped = false;
+    private static BlockPos taxmanTrapLocation = START_BUTTON_POS.east(10);
 
 
 //______________________________________________________________________________________________________________
@@ -120,31 +132,31 @@ public class Manager {
 
                 System.out.println("### NEW DAY on SERVER: " + currentServerDay + " ###");
                 if (currentServerDay == 1L) {
-                    new Day1().execute(overworld,DAY_1_CAGE_POS,event.getServer().getPlayerList().getPlayers().get(0));
+                    Day1.execute(overworld,DAY_1_CAGE_POS,event.getServer().getPlayerList().getPlayers().get(0));
                 } else if (currentServerDay == 5L) {
-                    new Day5().execute(overworld,DAY_1_CAGE_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                    Day5.execute(overworld,DAY_1_CAGE_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 }else if (currentServerDay == 18L) {
-                    new Day18().execute(overworld,DAY_1_CAGE_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                    Day18.execute(overworld,DAY_1_CAGE_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 }else if (currentServerDay == 21L) {
-                    new Day21().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                    Day21.execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 }else if (currentServerDay == 50L) {
-                    new Day50().execute(overworld,DAY_50_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                    Day50.execute(overworld,DAY_50_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 }else if (currentServerDay == 90L) {
-                    new Day90().execute(event.getServer().getPlayerList().getPlayers().get(0));
+                    Day90.execute(event.getServer().getPlayerList().getPlayers().get(0));
                 }else if (currentServerDay == 95L) {
-                    new Day95().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                    Day95.execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 }
             }
 //______________________________________________________________________________________________________________
 //                                                      Timed Events
 //______________________________________________________________________________________________________________
             if (currentServerDay == 29 && !evening_29 && dayTicks == 13000){
-                new Day29().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                Day29.execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 evening_29 = true;
             }if (currentServerDay == 46 && !evening_46 && dayTicks == 14000){
-                new Day46().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                Day46.execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 evening_46 = true;
-            }if (currentServerDay >= 71 && !evening_71 && !isPlayer_has_mystery_object()){
+            }if (currentServerDay >= 71 && !evening_71){
                 for (BlockPos buttonPos : DAY_50_BUTTON_POS) {
                     BlockPos supportBlockPos = buttonPos.north();
                     overworld.setBlock(supportBlockPos.south(1).east(1), Blocks.AIR.defaultBlockState(), 3);
@@ -153,21 +165,13 @@ public class Manager {
                 }
                 evening_71 = true;
             }if (currentServerDay == 82 && !evening_82 && dayTicks == 12000){
-                new Day82().execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
+                Day82.execute(overworld,START_BUTTON_POS, event.getServer().getPlayerList().getPlayers().get(0));
                 evening_82 = true;
             }
-
-            if (currentServerDay >= 82 && dayTicks > 12000 && isPlayer_has_mystery_object()) {
-                // Center of the trap - assumed to be near START_BUTTON_POS or wherever Day 82 spawns him
-                // Adjust this position to match where spawnTrapTaxman places the mob
-                BlockPos trapCenter = START_BUTTON_POS.east(10); // Matches spawnTrapTaxman offset
-                // 1. Spawn Particle Ring
-                spawnParticleRing(overworld, trapCenter, net.minecraft.core.particles.ParticleTypes.ENCHANT, 5.0, 40);
-
-                // 2. Repel Player
-                // Assuming single player for now, or loop through all players
+            if (currentServerDay >= 82 && isTaxmanTrapped) {
+                spawnParticleRing(overworld, taxmanTrapLocation, net.minecraft.core.particles.ParticleTypes.ENCHANT, 5.0, 40);
                 for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
-                    repelPlayer(player, trapCenter, 5.0, 0.5);
+                    repelPlayer(player, taxmanTrapLocation, 5.0, 0.5);
                 }
             }
         }
@@ -203,14 +207,36 @@ public class Manager {
                 }
             }
         }
-//        todo: add natural spawn for lich and fix red color in shader
+//        todo: add natural spawn for lich and fix taxman(spawn attacking taxman at start)
 //****************************************************************************************************
 //                                          Challenge 4
 //****************************************************************************************************
         else if (DAY_50_BUTTON_POS.contains(blockPos)) {
-            if (currentServerDay > 49 && currentServerDay <= 70 && !isPlayer_has_mystery_object()) {
+            if (currentServerDay > 49 && currentServerDay <= 70) {
 
-                tragetPlayer.sendSystemMessage(Component.literal("You received a Mysterious Object!"));
+                ItemStack mysteryItem = new ItemStack(Items.LEAD);
+
+                // 2. Set Obfuscated Name
+                mysteryItem.setHoverName(Component.literal("Mystery").withStyle(ChatFormatting.OBFUSCATED));
+
+                // 3. Set "????" Description
+                CompoundTag tag = mysteryItem.getOrCreateTagElement("display");
+                ListTag lore = new ListTag();
+                // JSON text component for "????" in Dark Red
+                lore.add(StringTag.valueOf(Component.Serializer.toJson(
+                        Component.literal("????").withStyle(ChatFormatting.DARK_RED)
+                )));
+                tag.put("Lore", lore);
+
+                // 4. Give to player
+                if (tragetPlayer instanceof ServerPlayer serverPlayer) {
+                    // Try adding to inventory, otherwise drop it
+                    if (!serverPlayer.getInventory().add(mysteryItem)) {
+                        serverPlayer.drop(mysteryItem, false);
+                    }
+                }
+
+                tragetPlayer.sendSystemMessage(Component.literal("You received a Mysterious Object!").withStyle(ChatFormatting.DARK_PURPLE));
                 event.setCanceled(true);
                 for (BlockPos buttonPos : DAY_50_BUTTON_POS) {
                     BlockPos supportBlockPos = buttonPos.north();
@@ -219,7 +245,65 @@ public class Manager {
                     world.setBlock(supportBlockPos.south(1).east(1), Blocks.AIR.defaultBlockState(), 3);
                     world.setBlock(supportBlockPos.south(1).east(1).below(1), Blocks.AIR.defaultBlockState(), 3);
                 }
-                player_has_mystery_object = true;
+            }
+        }
+    }
+    @SubscribeEvent
+    public static void onItemToss(ItemTossEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+
+        ItemEntity itemEntity = event.getEntity();
+        ItemStack stack = itemEntity.getItem();
+
+        // Check for Mystery Object
+        if (stack.getItem() == Items.LEAD &&
+                stack.hasCustomHoverName() &&
+                stack.getHoverName().getStyle().isObfuscated()) {
+
+            if (currentServerDay >= 82) {
+                ServerLevel level = (ServerLevel) event.getEntity().level();
+
+                // 1. Find the existing Taxman (Index 4)
+                net.minecraft.world.phys.AABB searchArea = itemEntity.getBoundingBox().inflate(50.0);
+                EntityType<?> taxmanType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(MOB_IDS.get(6)));
+
+                if (taxmanType != null) {
+                    List<? extends Entity> entities = level.getEntities(taxmanType, searchArea, e -> e instanceof Mob);
+
+                    if (!entities.isEmpty()) {
+                        Mob oldTaxman = (Mob) entities.get(0);
+
+                        // 2. Save location
+                        taxmanTrapLocation = oldTaxman.blockPosition();
+
+                        // 3. REMOVE the Taxman
+                        oldTaxman.discard();
+
+                        // 4. SPAWN the NEW Entity (Index 6)
+                        // This uses our new helper to make it Frozen + Persistent
+                        spawnTrappedMob(level, taxmanTrapLocation, MOB_IDS.get(4));
+
+                        // 5. Activate Ring/Repel Effects
+                        isTaxmanTrapped = true;
+
+                        // Effects & Messages
+                        level.playSound(null, taxmanTrapLocation, SoundEvents.ZOMBIE_VILLAGER_CURE, SoundSource.HOSTILE, 1.0f, 1.5f);
+                        if (tragetPlayer != null) {
+                            tragetPlayer.sendSystemMessage(Component.literal("The Taxman is gone... A new entity is trapped in his place!").withStyle(ChatFormatting.GOLD));
+                        }
+
+                        // 6. Remove the thrown item
+                        itemEntity.discard();
+                    } else {
+                        if (tragetPlayer != null) {
+                            tragetPlayer.sendSystemMessage(Component.literal("The Taxman is not near...").withStyle(ChatFormatting.RED));
+                        }
+                    }
+                }
+            } else {
+                if (tragetPlayer != null) {
+                    tragetPlayer.sendSystemMessage(Component.literal("It's not time yet...").withStyle(ChatFormatting.GRAY));
+                }
             }
         }
     }
@@ -338,6 +422,34 @@ public class Manager {
         }
     }
 
+    public static void spawnTrappedMob(ServerLevel world, BlockPos pos, String mobId) {
+        // 1. Get the EntityType from your ID
+        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(mobId));
+
+        if (entityType == null) {
+            System.out.println("ERROR: Cannot find trapped mob ID: " + mobId);
+            return;
+        }
+
+        // 2. Create the entity
+        Entity entity = entityType.create(world);
+
+        if (entity instanceof Mob mob) {
+            // 3. Set position (Centered)
+            mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+
+            // 4. Set Properties: Frozen and Persistent
+            mob.setNoAi(true);              // Cannot move/attack
+            mob.setPersistenceRequired();   // Will not despawn
+
+            // Optional: Make it look at the player?
+            // mob.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES, ...);
+
+            // 5. Spawn it
+            world.addFreshEntity(mob);
+        }
+    }
+
     public static void spawnParticleRing(ServerLevel world, BlockPos pos, ParticleOptions particle, double radius, int count) {
         for (int i = 0; i < count; i++) {
             double angle = 2 * Math.PI * i / count;
@@ -371,10 +483,6 @@ public class Manager {
         }
     }
 
-    public static boolean isPlayer_has_mystery_object() {
-        return player_has_mystery_object;
-    }
-
     public static boolean isStart() {
         return start;
     }
@@ -389,7 +497,7 @@ public class Manager {
 
     public static int setCurrentServerDay(long currentServerDay) {
         Manager.currentServerDay = currentServerDay;
-        setDayTick = getCurrentServerDay() - currentServerDay * 24000;
+        setDayTick = getCurrentServerDay() - (currentServerDay * 24000);
         lastServerDay = currentServerDay -1; // So the tick event re-triggers
         return 1;
     }

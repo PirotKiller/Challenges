@@ -13,7 +13,7 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public class Day46 {
-    public void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
 
         Manager.sendTitleToPlayer(player, Component.literal("☽ BLOOD MOON ☽").withStyle(ChatFormatting.RED),
                 Component.literal("☠ They are back... and stronger.").withStyle(ChatFormatting.AQUA), 10, 70, 20);

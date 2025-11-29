@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.state.properties.AttachFace;
 import java.util.List;
 
 public class Day50 {
-    public void execute(ServerLevel overworld, List<BlockPos> pos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, List<BlockPos> pos, ServerPlayer player){
         for (BlockPos buttonPos : pos) {
             BlockPos supportBlockPos = buttonPos.north();
             overworld.setBlock(supportBlockPos.south(1).east(1), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState(), 3);

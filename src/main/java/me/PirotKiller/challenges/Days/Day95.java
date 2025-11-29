@@ -12,7 +12,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public class Day95 {
-    public void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, BlockPos pos, ServerPlayer player){
         Manager.sendTitleToPlayer(player,
                 Component.literal("☠ THE CHAMPION ☠").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD),
                 Component.literal("He is here.").withStyle(ChatFormatting.GRAY),

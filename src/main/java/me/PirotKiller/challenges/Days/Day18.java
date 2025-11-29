@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Blocks;
 
 public class Day18 {
-    public void execute(ServerLevel overworld, BlockPos blockPos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, BlockPos blockPos, ServerPlayer player){
         Manager.sendTitleToPlayer(player, Component.literal("IT'S FALLING!").withStyle(ChatFormatting.DARK_RED), Component.literal("RUN!"), 10, 40, 20);
         player.sendSystemMessage(Component.literal("The cage floor has vanished!").withStyle(ChatFormatting.YELLOW));
 

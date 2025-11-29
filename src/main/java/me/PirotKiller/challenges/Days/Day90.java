@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class Day90 {
-    public void execute(ServerPlayer player){
+    public static void execute(ServerPlayer player){
         Manager.sendTitleToPlayer(player,
                 Component.literal("BOSS BATTLE").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
                 Component.literal("Prepare yourself...").withStyle(ChatFormatting.GOLD),

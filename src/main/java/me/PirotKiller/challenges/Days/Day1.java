@@ -19,7 +19,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class Day1 {
 
-    public void execute(ServerLevel world, BlockPos cageStartPosition , ServerPlayer player){
+    public static void execute(ServerLevel world, BlockPos cageStartPosition , ServerPlayer player){
         int cageSize = 6;
         BlockPos spawnPos = cageStartPosition.offset(cageSize / 2,1,cageSize / 2);
         createCage(world, cageStartPosition, cageSize);

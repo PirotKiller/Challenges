@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Blocks;
 
 public class Day5 {
-    public void execute(ServerLevel overworld, BlockPos blockPos, ServerPlayer player){
+    public static void execute(ServerLevel overworld, BlockPos blockPos, ServerPlayer player){
         Manager.replaceCageBlocks(overworld, blockPos, Blocks.GLASS, Blocks.RED_STAINED_GLASS, 0, 0);
         player.sendSystemMessage(Component.literal("The cage is cracking...").withStyle(ChatFormatting.RED));
         Manager.playSound(overworld, player.getOnPos(), SoundEvents.GLASS_BREAK, 2.0f, 1.0f);
